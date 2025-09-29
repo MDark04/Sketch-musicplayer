@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MaroonVibe</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        /* --- PALET WARNA --- */
+        :root {
+            --maroon-utama: #640000;
+            --aksen-crimson: #DC143C;
+            --bg-gelap: #120A0A;
+            --teks-krem: #F5F5DC;
+            --bg-glass: rgba(40, 20, 20, 0.5);
+        }
+
+        /* --- STYLE DASAR --- */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--bg-gelap);
+            color: var(--teks-krem);
+            overflow: hidden; /* Mencegah scroll di body utama */
+        }
+
+        .app-container {
+            display: grid;
+            grid-template-columns: 240px 1fr;
+            grid-template-rows: 1fr auto;
+            height: 100vh;
+        }
+        
+        /* --- SIDEBAR NAVIGASI --- */
+        .sidebar {
+            background-color: #000;
+            padding: 24px;
+            grid-row: 1 / 2;
+        }
+        .sidebar .logo {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--maroon-utama);
+            margin-bottom: 40px;
+        }
+        .sidebar .nav-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 0;
+            cursor: pointer;
+            opacity: 0.7;
+            transition: opacity 0.2s;
+        }
+        .sidebar .nav-item:hover, .sidebar .nav-item.active {
+            opacity: 1;
+        }
+        .sidebar .nav-item svg {
+            width: 24px;
+            height: 24px;
+            margin-right: 16px;
+        }
+
+        /* --- KONTEN UTAMA --- */
+        .main-content {
+            grid-column: 2 / 3;
+            grid-row: 1 / 2;
+            overflow-y: auto;
+            padding: 32px;
+        }
+        .main-content h1 {
+            font-size: 2rem;
+            margin-bottom: 8px;
+        }
+        .main-content .section-title {
+            font-size: 1.5rem;
+            margin-top: 30px;
+            margin-bottom: 20px;
+        }
+        .song-list-header, .song-item {
+            display: grid;
+            grid-template-columns: 40px 4fr 3fr 1fr;
+            gap: 16px;
+            padding: 12px;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .song-list-header {
+            color: rgba(255,255,255,0.5);
+            font-size: 0.9rem;
+        }
+        .song-item {
+            cursor: pointer;
+            border-radius: 8px;
+            transition: background-color 0.2s;
+        }
+        .song-item:hover {
+            background-color: rgba(255,255,255,0.05);
+        }
+        .song-item .song-album-art {
+            width: 40px;
+            height: 40px;
+            object-fit: cover;
+            border-radius: 4px;
+            margin-left: 8px;
+        }
+        .song-item .song-title {
+            font-weight: 500;
+        }
+        .song-item .song-artist, .song-item .song-duration {
+             color: rgba(255,255,255,0.6);
+        }
+
+
+        /* --- PEMUTAR BAWAH --- */
+        .player-bar {
+            grid-column: 1 / 3;
+            grid-row: 2 / 3;
+            background-color: #050505;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            display: grid;
+            grid-template-columns: 1fr 2fr 1fr;
+            align-items: center;
+            padding: 16px 24px;
+            height: 90px;
+        }
+        .player-bar .current-song-info {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+        }
+        .player-bar #player-album-art {
+            width: 56px;
+            height: 56px;
+            object-fit: cover;
+            border-radius: 4px;
+            margin-right: 16px;
+        }
+        .player-bar #player-song-title {
+            font-weight: 500;
+        }
+         .player-bar #player-song-artist {
+            font-size: 0.9rem;
+            color: rgba(255,255,255,0.6);
+        }
+        .player-controls {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .player-buttons {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+            margin-bottom: 8px;
+        }
+        .player-buttons button {
+            background: none;
+            border: none;
+            color: var(--teks-krem);
+            cursor: pointer;
+            opacity: 0.7;
+            transition: all 0.2s;
+        }
+        .player-buttons button:hover {
+            opacity: 1;
+        }
+        .player-buttons #play-pause-btn svg {
+            width: 40px;
+            height: 40px;
+        }
+         .player-buttons button svg {
+            width: 24px;
+            height: 24px;
+        }
+        #seek-bar-container {
+            width: 100%;
+            max-width: 500px;
+            height: 4px;
+            background-color: rgba(255,255,255,0.2);
+            border-radius: 2px;
+            cursor: pointer;
+        }
+        #seek-bar-progress {
+            width: 0%;
+            height: 100%;
+            background-color: var(--aksen-crimson);
+            border-radius: 2px;
+            transition: width 1s linear;
+        }
+
+        /* --- LAYAR NOW PLAYING (OVERLAY) --- */
+        .now-playing-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            backdrop-filter: blur(50px);
+            z-index: 100;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.4s ease, visibility 0.4s ease;
+        }
+        .now-playing-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+        .now-playing-content {
+            text-align: center;
+            position: relative;
+        }
+        #now-playing-album-art {
+            width: 350px;
+            height: 350px;
+            border-radius: 20px;
+            margin-bottom: 40px;
+            box-shadow: 0 10px 40px var(--aksen-crimson), 0 0 0 10px rgba(0,0,0,0.3);
+        }
+        #now-playing-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+        }
+        #now-playing-artist {
+            font-size: 1.2rem;
+            color: rgba(255,255,255,0.7);
+            margin-bottom: 40px;
+        }
+        .now-playing-overlay #close-btn {
+            position: absolute;
+            top: -100px;
+            right: 0;
+            background: none;
+            border: none;
+            color: var(--teks-krem);
+            cursor: pointer;
+            opacity: 0.7;
+        }
+        .now-playing-overlay #close-btn:hover {
+            opacity: 1;
+        }
+        .now-playing-overlay #close-btn svg {
+            width: 32px;
+            height: 32px;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="logo">MaroonVibe</div>
+            <nav>
+                <div class="nav-item active">
+                    <svg fill="currentColor" viewBox="0 0 20 20"><path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"></path></svg>
+                    <span>Beranda</span>
+                </div>
+                <div class="nav-item">
+                    <svg fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"></path></svg>
+                    <span>Pencarian</span>
+                </div>
+                <div class="nav-item">
+                    <svg fill="currentColor" viewBox="0 0 20 20"><path d="M7 3a1 1 0 000 2h6a1 1 0 100-2H7zM4 7a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1zM2 11a1 1 0 011-1h14a1 1 0 110 2H3a1 1 0 01-1-1zM2 15a1 1 0 011-1h14a1 1 0 110 2H3a1 1 0 01-1-1z"></path></svg>
+                    <span>Koleksi Saya</span>
+                </div>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+            <h1>Selamat Datang Kembali</h1>
+            <p style="color: rgba(255,255,255,0.7);">Rekomendasi pilihan untukmu hari ini.</p>
+            
+            <h2 class="section-title">Lagu yang Sering Diputar</h2>
+
+            <div class="song-list">
+                <div class="song-list-header">
+                    <div>#</div>
+                    <div>JUDUL</div>
+                    <div>ARTIS</div>
+                    <div>DURASI</div>
+                </div>
+                <div id="playlist-container">
+                    </div>
+            </div>
+        </main>
+
+        <footer class="player-bar">
+            <div class="current-song-info">
+                <img id="player-album-art" src="./assets/placeholder.png" alt="Album Art">
+                <div>
+                    <div id="player-song-title">-</div>
+                    <div id="player-song-artist">-</div>
+                </div>
+            </div>
+            <div class="player-controls">
+                <div class="player-buttons">
+                    <button id="prev-btn">
+                        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"></path></svg>
+                    </button>
+                    <button id="play-pause-btn">
+                        <svg id="play-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"></path></svg>
+                        <svg id="pause-icon" viewBox="0 0 24 24" fill="currentColor" style="display: none;"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"></path></svg>
+                    </button>
+                    <button id="next-btn">
+                        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"></path></svg>
+                    </button>
+                </div>
+                <div id="seek-bar-container">
+                    <div id="seek-bar-progress"></div>
+                </div>
+            </div>
+            <div class="other-controls"></div>
+        </footer>
+    </div>
+
+    <div class="now-playing-overlay">
+        <div class="now-playing-content">
+            <button id="close-btn">
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"></path></svg>
+            </button>
+            <img id="now-playing-album-art" src="./assets/placeholder.png" alt="Album Art">
+            <h2 id="now-playing-title">Nama Lagu</h2>
+            <p id="now-playing-artist">Nama Artis</p>
+        </div>
+    </div>
+
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- DATA LAGU (DUMMY) ---
+            const songs = [
+                { title: "Senja & Pagi", artist: "Alffy Rev", duration: "4:12", art: "./assets/album1.jpg" },
+                { title: "Wonderland Indonesia", artist: "Novia Bachmid", duration: "10:52", art: "./assets/album2.jpg" },
+                { title: "Monokrom", artist: "Tulus", duration: "3:35", art: "./assets/album3.jpg" },
+                { title: "Secukupnya", artist: "Hindia", duration: "3:13", art: "./assets/album4.jpg" },
+                { title: "C.H.R.I.S.Y.E.", artist: "Diskoria, Laleilmanino", duration: "5:01", art: "./assets/album5.jpg" }
+            ];
+
+            // --- ELEMEN DOM ---
+            const playlistContainer = document.getElementById('playlist-container');
+            const playerAlbumArt = document.getElementById('player-album-art');
+            const playerSongTitle = document.getElementById('player-song-title');
+            const playerSongArtist = document.getElementById('player-song-artist');
+            const playPauseBtn = document.getElementById('play-pause-btn');
+            const playIcon = document.getElementById('play-icon');
+            const pauseIcon = document.getElementById('pause-icon');
+            const seekBarProgress = document.getElementById('seek-bar-progress');
+            
+            const nowPlayingOverlay = document.querySelector('.now-playing-overlay');
+            const nowPlayingAlbumArt = document.getElementById('now-playing-album-art');
+            const nowPlayingTitle = document.getElementById('now-playing-title');
+            const nowPlayingArtist = document.getElementById('now-playing-artist');
+            const closeBtn = document.getElementById('close-btn');
+            const currentSongInfo = document.querySelector('.current-song-info');
+
+            let currentSongIndex = 0;
+            let isPlaying = false;
+            let progressInterval;
+
+            // --- FUNGSI ---
+            
+            // Render semua lagu ke dalam daftar
+            function renderPlaylist() {
+                songs.forEach((song, index) => {
+                    const songElement = document.createElement('div');
+                    songElement.classList.add('song-item');
+                    songElement.innerHTML = `
+                        <div>${index + 1}</div>
+                        <div style="display: flex; align-items: center;">
+                            <img src="${song.art}" alt="${song.title}" class="song-album-art">
+                            <span class="song-title">${song.title}</span>
+                        </div>
+                        <div class="song-artist">${song.artist}</div>
+                        <div class="song-duration">${song.duration}</div>
+                    `;
+                    songElement.addEventListener('click', () => {
+                        currentSongIndex = index;
+                        loadSong(currentSongIndex);
+                        playSong();
+                    });
+                    playlistContainer.appendChild(songElement);
+                });
+            }
+
+            // Muat data lagu ke pemutar
+            function loadSong(index) {
+                const song = songs[index];
+                playerAlbumArt.src = song.art;
+                playerSongTitle.textContent = song.title;
+                playerSongArtist.textContent = song.artist;
+                nowPlayingAlbumArt.src = song.art;
+                nowPlayingTitle.textContent = song.title;
+                nowPlayingArtist.textContent = song.artist;
+            }
+
+            // Fungsi untuk memutar lagu
+            function playSong() {
+                isPlaying = true;
+                playIcon.style.display = 'none';
+                pauseIcon.style.display = 'block';
+                
+                // Simulasi progress bar
+                clearInterval(progressInterval);
+                let currentProgress = 0;
+                seekBarProgress.style.width = '0%';
+                progressInterval = setInterval(() => {
+                    currentProgress += 1;
+                    seekBarProgress.style.width = `${currentProgress}%`;
+                    if (currentProgress >= 100) {
+                        clearInterval(progressInterval);
+                        // Otomatis putar lagu selanjutnya jika sudah selesai
+                        playNext();
+                    }
+                }, 1000); // Simulasi 100 detik per lagu
+            }
+            
+            // Fungsi untuk pause lagu
+            function pauseSong() {
+                isPlaying = false;
+                playIcon.style.display = 'block';
+                pauseIcon.style.display = 'none';
+                clearInterval(progressInterval);
+            }
+
+            // Fungsi untuk tombol play/pause utama
+            function togglePlayPause() {
+                if(playerSongTitle.textContent === '-') return; // Jangan lakukan apa-apa jika belum ada lagu dipilih
+                if (isPlaying) {
+                    pauseSong();
+                } else {
+                    playSong();
+                }
+            }
+            
+            // Fungsi untuk lagu selanjutnya
+            function playNext(){
+                currentSongIndex = (currentSongIndex + 1) % songs.length;
+                loadSong(currentSongIndex);
+                playSong();
+            }
+
+            // Fungsi untuk lagu sebelumnya
+            function playPrev(){
+                currentSongIndex = (currentSongIndex - 1 + songs.length) % songs.length;
+                loadSong(currentSongIndex);
+                playSong();
+            }
+
+            // --- EVENT LISTENERS ---
+            playPauseBtn.addEventListener('click', togglePlayPause);
+            document.getElementById('next-btn').addEventListener('click', playNext);
+            document.getElementById('prev-btn').addEventListener('click', playPrev);
+
+            // Buka & Tutup Overlay Now Playing
+            currentSongInfo.addEventListener('click', () => nowPlayingOverlay.classList.add('show'));
+            closeBtn.addEventListener('click', () => nowPlayingOverlay.classList.remove('show'));
+
+            // --- INISIALISASI ---
+            renderPlaylist();
+        });
+    </script>
+</body>
+</html>
